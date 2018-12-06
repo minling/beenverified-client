@@ -1,6 +1,67 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import './App.css';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link,
+  Switch,
+  Redirect
+} from "react-router-dom";
+
+class ShortLink extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {value: ''};
+
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    var longUrl = this.state.value;
+    // var url = "https://beenverified-api.herokuapp.com/" + longUrl;
+    var url = "http://localhost:4000/" + longUrl;
+    
+    fetch(url, {
+      mode: 'cors',
+      method: 'POST',
+      body: longUrl
+    })
+    .then(res => res.json())
+    .then(
+      (result) => {
+        this.setState({
+          isLoaded: true,
+          items: result.top_100
+        });
+      },
+      (error) =>{
+        this.setState({
+          isLoaded: true,
+          error
+        });
+      }
+    )
+
+  }
+
+  render() {
+    return (
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Long Url:
+          <input type="text" value={this.state.value} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
+    );
+  }
+}
 
 class Url extends React.Component {
   render (){
@@ -37,7 +98,69 @@ class UrlTable extends React.Component {
   }
 }
 
-class UrlList extends Component {
+function RedirectUrl (url){
+  window.location = url;
+}
+
+class AccessLink extends React.Component {
+  constructor(props){
+    super(props);
+    this.state = {
+      error: null,
+      renderRedirect: false,
+      url: ''
+    }
+  };
+
+  componentDidMount(){
+    var link = this.props.match.url;
+    // var url = 'https://beenverified-api.herokuapp.com/' + link;
+    var url = 'http://localhost:4000/' + link;
+
+    fetch(url, {mode: 'cors'})
+      .then(res => res.json())
+      .then(
+        (result) => {
+          if(result.error){
+            this.setState({
+              renderRedirect: false
+            });
+          }
+          else{
+            this.setState({
+              renderRedirect: true,
+              url: result.redirect
+            });
+          }
+
+        },
+        (error) =>{
+          this.setState({
+            renderRedirect: false,
+            error
+          });
+        }
+      )
+ 
+  }
+
+  render(){
+    const { error, renderRedirect, url } = this.state;
+
+    if(renderRedirect){
+      RedirectUrl(url);
+    }
+    else{
+      return(
+        <div>
+          <p>This is not a valid URL</p>
+        </div>
+        )
+    }
+  }
+}
+
+class UrlList extends React.Component {
   constructor(props){
     super(props);
     this.state = {
@@ -48,7 +171,10 @@ class UrlList extends Component {
   };
 
   componentDidMount(){
-    fetch('https://beenverified-api.herokuapp.com/top', {mode: 'cors'})
+    // var url = 'https://beenverified-api.herokuapp.com/top'
+    var url = 'http://localhost:4000/top'
+
+    fetch(url, {mode: 'cors'})
       .then(res => res.json())
       .then(
         (result) => {
@@ -76,18 +202,33 @@ class UrlList extends Component {
     }
     else{
       return(
-        <div>
+        
           <div>
-            <h1>Form</h1>
+            <div>
+              <h1>Submit a Short Link</h1>
+              <ShortLink />
+            </div>
+            <div>
+              <h1>Top 100 Links</h1>
+              <UrlTable links = {items}/>
+            </div>
           </div>
-          <div>
-            <h1>Top 100 Links</h1>
-            <UrlTable links = {items}/>
-          </div>
-        </div>
       );
     }
   }
 }
 
-export default UrlList;
+class App extends Component {
+  render(){
+    return(
+      <Router>
+        <Switch>         
+          <Route exact={true} path="/" component={UrlList} />
+          <Route path="/*" component={AccessLink}/>
+          </Switch>
+      </Router>
+    )
+  }
+}
+
+export default App;
