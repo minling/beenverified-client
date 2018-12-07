@@ -11,7 +11,13 @@ import {
 class ShortLink extends React.Component {
   constructor(props){
     super(props);
-    this.state = {value: ''};
+    this.state = {
+      value: '',
+      success: false,
+      error: '',
+      shortUrl: '',
+      text: ''
+    };
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -24,8 +30,8 @@ class ShortLink extends React.Component {
   handleSubmit(event) {
     event.preventDefault();
     var longUrl = this.state.value;
-    // var url = "https://beenverified-api.herokuapp.com/" + longUrl;
-    var url = "http://localhost:4000/" + longUrl;
+    var baseUrl = "https://beenverified-api.herokuapp.com/"
+    var url = baseUrl + longUrl;
     
     fetch(url, {
       mode: 'cors',
@@ -35,10 +41,19 @@ class ShortLink extends React.Component {
     .then(res => res.json())
     .then(
       (result) => {
-        this.setState({
-          isLoaded: true,
-          items: result.top_100
-        });
+        if(result.errors){
+          this.setState({
+            success: false,
+            text: "'" + longUrl +"'" + " " + result.errors.url
+          });
+        }
+        else{
+          this.setState({
+            success: true,
+            shortUrl: result.short_url,
+            text: 'Your URL has been created successfully: ' + baseUrl + result.short_url
+          });
+        }
       },
       (error) =>{
         this.setState({
@@ -52,13 +67,20 @@ class ShortLink extends React.Component {
 
   render() {
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          Long Url:
-          <input type="text" value={this.state.value} onChange={this.handleChange} />
-        </label>
-        <input type="submit" value="Submit" />
-      </form>
+      <div>
+        <h1>Submit a Short Link</h1>
+      
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            Long Url:
+            <input type="text" value={this.state.value} onChange={this.handleChange} />
+          </label>
+          <input type="submit" value="Submit" />
+          <div><p>{this.state.text}</p></div>
+        </form>
+
+        <h2><Link to="/top">Click here to see the Top 100 Links</Link></h2>
+      </div>
     );
   }
 }
@@ -68,7 +90,7 @@ class Url extends React.Component {
     return(
       <tr>
         <td>{this.props.link.url}</td>
-        <td>{this.props.link.short_url}</td>
+        <td><Link to={this.props.link.short_url}>https://beenverified-api.herokuapp.com/{this.props.link.short_url}</Link></td>
         <td>{this.props.link.title}</td>
         <td>{this.props.link.access_count}</td>
       </tr>
@@ -114,8 +136,7 @@ class AccessLink extends React.Component {
 
   componentDidMount(){
     var link = this.props.match.url;
-    // var url = 'https://beenverified-api.herokuapp.com/' + link;
-    var url = 'http://localhost:4000/' + link;
+    var url = 'https://beenverified-api.herokuapp.com/' + link;
 
     fetch(url, {mode: 'cors'})
       .then(res => res.json())
@@ -171,8 +192,7 @@ class UrlList extends React.Component {
   };
 
   componentDidMount(){
-    // var url = 'https://beenverified-api.herokuapp.com/top'
-    var url = 'http://localhost:4000/top'
+    var url = 'https://beenverified-api.herokuapp.com/top'
 
     fetch(url, {mode: 'cors'})
       .then(res => res.json())
@@ -205,10 +225,6 @@ class UrlList extends React.Component {
         
           <div>
             <div>
-              <h1>Submit a Short Link</h1>
-              <ShortLink />
-            </div>
-            <div>
               <h1>Top 100 Links</h1>
               <UrlTable links = {items}/>
             </div>
@@ -223,7 +239,8 @@ class App extends Component {
     return(
       <Router>
         <Switch>         
-          <Route exact={true} path="/" component={UrlList} />
+          <Route exact={true} path="/" component={ShortLink} />
+          <Route exact={true} path="/top" component={UrlList} />
           <Route path="/*" component={AccessLink}/>
           </Switch>
       </Router>
