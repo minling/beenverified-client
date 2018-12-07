@@ -44,14 +44,16 @@ class ShortLink extends React.Component {
         if(result.errors){
           this.setState({
             success: false,
-            text: "'" + longUrl +"'" + " " + result.errors.url
+            text: "'" + longUrl +"'" + " " + result.errors.url,
+            messageColor: 'alert alert-danger'
           });
         }
         else{
           this.setState({
             success: true,
             shortUrl: result.short_url,
-            text: 'Your URL has been created successfully: ' + baseUrl + result.short_url
+            text: 'Your URL has been created successfully: ' + baseUrl + result.short_url,
+            messageColor: 'alert alert-success'
           });
         }
       },
@@ -68,18 +70,20 @@ class ShortLink extends React.Component {
   render() {
     return (
       <div>
-        <h1>Submit a Short Link</h1>
-      
         <form onSubmit={this.handleSubmit}>
-          <label>
-            Long Url:
-            <input type="text" value={this.state.value} onChange={this.handleChange} />
-          </label>
-          <input type="submit" value="Submit" />
-          <div><p>{this.state.text}</p></div>
+          <h3>Submit a Short Link</h3>
+          <div class="row">
+          <div class="col">  
+            <input class="form-control mx-sm-3" type="text" value={this.state.value} onChange={this.handleChange} placeholder="Long Url:" />
+          </div>
+          <div class="col">
+            <input class="btn btn-primary" type="submit" value="Submit" />
+          </div>
+        </div>
+        <div class={this.state.messageColor} role="alert">
+          {this.state.text}
+        </div>
         </form>
-
-        <h2><Link to="/top">Click here to see the Top 100 Links</Link></h2>
       </div>
     );
   }
@@ -105,13 +109,13 @@ class UrlTable extends React.Component {
       rows.push(<Url link = {link} />)
     });
     return(
-      <table className="urlList">
+      <table className="urlList" class="table">
         <thead>
           <tr>
-            <th>URL</th>
-            <th>Short Url</th>
-            <th>Title</th>
-            <th>Access Count</th>
+            <th class="col">URL</th>
+            <th class="col-6">Short Url</th>
+            <th class="col"> Title</th>
+            <th class="col"> Access Count</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>
@@ -237,6 +241,19 @@ class UrlList extends React.Component {
 class App extends Component {
   render(){
     return(
+      <div>
+        <ul class="nav justify-content-center">
+          <li class="nav-item">
+            <a class="nav-link active" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/top">Top 100</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/">Submit a URL</a>
+          </li>
+        </ul>
+      
       <Router>
         <Switch>         
           <Route exact={true} path="/" component={ShortLink} />
@@ -244,6 +261,7 @@ class App extends Component {
           <Route path="/*" component={AccessLink}/>
           </Switch>
       </Router>
+      </div>
     )
   }
 }
