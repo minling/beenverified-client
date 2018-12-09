@@ -113,9 +113,9 @@ class UrlTable extends React.Component {
         <thead>
           <tr>
             <th class="col">URL</th>
-            <th class="col-6">Short Url</th>
-            <th class="col"> Title</th>
-            <th class="col"> Access Count</th>
+            <th class="col">Short Url</th>
+            <th class="col">Title</th>
+            <th class="col">Access Count</th>
           </tr>
         </thead>
         <tbody>{rows}</tbody>
@@ -228,10 +228,12 @@ class UrlList extends React.Component {
       return(
         
           <div>
-            <div>
-              <h1>Top 100 Links</h1>
-              <UrlTable links = {items}/>
-            </div>
+              <div>
+                <h2>Top 100 Links</h2>  
+              </div>
+              <div class="table-responsive">
+                <UrlTable links = {items}/>
+              </div>
           </div>
       );
     }
